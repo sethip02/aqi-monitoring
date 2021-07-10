@@ -1,0 +1,14 @@
+[
+  { "city": "Mumbai", "aqi": "Not Available" },
+  { "city": "Bengaluru", "aqi": "Not Available" },
+  { "city": "Chennai", "aqi": "Not Available" },
+  { "city": "Pune", "aqi": "Not Available" },
+  { "city": "Hyderabad", "aqi": "Not Available" },
+  { "city": "Indore", "aqi": "Not Available" },
+  { "city": "Jaipur", "aqi": "Not Available" },
+  { "city": "Chandigarh", "aqi": "Not Available" },
+  { "city": "Lucknow", "aqi": "Not Available" },
+  { "city": "Kolkata", "aqi": "Not Available" },
+  { "city": "Delhi", "aqi": "Not Available" },
+  { "city": "Bhubaneswar", "aqi": "Not Available" }
+]

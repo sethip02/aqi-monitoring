@@ -1,52 +1,40 @@
 import './App.css';
-import { React, useEffect, useState } from 'react';
-import { useTable } from 'react-table'
-
+import { React, useEffect, useState, useRef } from 'react';
 let webSocketObj = new WebSocket("ws://city-ws.herokuapp.com/");
 
-//Sample Message received from the server : Message received from the server : [{"city":"Mumbai","aqi":179.48953967731958},{"city":"Bengaluru","aqi":190.77381882356204},{"city":"Chennai","aqi":140.0255936078323},{"city":"Pune","aqi":222.35319204313396},{"city":"Hyderabad","aqi":199.3847020848653},{"city":"Indore","aqi":51.7829168843359},{"city":"Jaipur","aqi":142.79149985530853},{"city":"Chandigarh","aqi":45.64197667788339},{"city":"Lucknow","aqi":74.30342737014297}]
+
 function App() {
-  const [aqiData, setAQIData] = useState([]);
-  const aqiTableColumns = React.useMemo(
-     () => [
-       {
-         Header: 'City',
-         accessor: 'city', 
-       },
-       {
-         Header: 'Current aqi',
-         accessor: 'curr_aqi',
-       },
-       {
-         Header: 'Last updated',
-         accessor: 'last_update',
-       },
-     ],
-     []
-  )
-  
-  
-const {
-     getTableProps,
-     getTableBodyProps,
-     headerGroups,
-     rows,
-     prepareRow,
-   } = useTable({ aqiTableColumns, aqiData })
-  
-  
+  const [aqiData, setAQIData] = useState(() => initialState());
+  const tempAQIData = useRef(initialState());
+  const aqiTableColumns = ['City', 'Current aqi', 'Last updated' ];
   
   useEffect(() => {
     webSocketObj.onopen = () => {
-    console.log("Connection established with the Server");
+      console.log("Connection established with the Server");
     };
     
     webSocketObj.onmessage = (message) => {
-      console.log("Message received from the server : " + message.data);
       const parsedJSONResponse = JSON.parse(message.data);
+      //processing json response
+      //tempAQIData.current = JSON.parse(JSON.stringify(aqiData));
       
-      setAQIData([...parsedJSONResponse]);
+      for (let currDataObj of parsedJSONResponse) {
+        for (let prevDataObj of tempAQIData.current) {
+          if (prevDataObj["city"] === currDataObj["city"]) {
+            prevDataObj["aqi"] = parseFloat(currDataObj["aqi"]).toFixed(2).toString();
+            prevDataObj["last_update"] = (new Date()).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+            break;
+          }
+
+        }
+          
+            
+      }
+      setAQIData([...(tempAQIData.current)]);
     };
+   
+    
+    
 
     webSocketObj.onclose = () => {
       console.log("Connection to the server is closed");
@@ -57,9 +45,78 @@ const {
 
   return (
     <div className="App">
-      <p>{ JSON.stringify(aqiData)}</p>
+      <table>
+        
+          {
+            aqiTableColumns.map((columnName) => 
+             (<th>{columnName}</th>))
+          
+          }
+        
+        {
+           aqiData.map((rowData) => 
+             (<tr>
+             <td>{rowData["city"]}</td>
+             {getAQIRowData(rowData["aqi"])}
+             <td>{rowData["last_update"]}</td>
+                </tr>))
+        }
+      </table>
     </div>
   );
 }
 
+function initialState() {
+  
+  const currentTime = (new Date()).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+  return ([
+  { "city": "Mumbai", "aqi": "Not Available", "last_update" :  currentTime},
+  { "city": "Bengaluru", "aqi": "Not Available", "last_update" : currentTime },
+  { "city": "Chennai", "aqi": "Not Available", "last_update" :  currentTime },
+  { "city": "Pune", "aqi": "Not Available" , "last_update" :  currentTime },
+  { "city": "Hyderabad", "aqi": "Not Available" , "last_update" :  currentTime },
+  { "city": "Indore", "aqi": "Not Available" , "last_update" :  currentTime },
+  { "city": "Jaipur", "aqi": "Not Available" , "last_update" :  currentTime },
+  { "city": "Chandigarh", "aqi": "Not Available" , "last_update" :  currentTime },
+  { "city": "Lucknow", "aqi": "Not Available" , "last_update" :  currentTime },
+  { "city": "Kolkata", "aqi": "Not Available" , "last_update" :  currentTime },
+  { "city": "Delhi", "aqi": "Not Available" , "last_update" :  currentTime },
+    { "city": "Bhubaneswar", "aqi": "Not Available", "last_update": currentTime }
+
+]);
+}
+
+
+function getAQIRowData(value) {
+  let tdClass = "";
+  if (value === "Not Available" || value < 0) {
+    tdClass = "na";
+  }
+  else if (value > 0 && value <= 50) {
+    tdClass = "good";
+  }
+  
+  else if (value > 50 && value <= 100) {
+     tdClass = "satisfactory";
+  }
+  
+  else if (value > 100 && value <= 200) {
+    tdClass = "moderate";
+  }
+  
+  else if (value > 200 && value <= 300) {
+    tdClass = "poor";
+  }
+  else if (value > 300 && value <= 400) {
+    tdClass = "verypoor";
+  }
+  else if (value > 400 && value <= 500) {
+    tdClass = "severe";
+  }
+
+
+  return (
+    <td class={tdClass}>{value}</td>
+  );
+}
 export default App;
