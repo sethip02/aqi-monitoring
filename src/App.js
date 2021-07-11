@@ -1,13 +1,18 @@
 import './App.css';
 import { React, useEffect, useState, useRef } from 'react';
-let webSocketObj = new WebSocket("ws://city-ws.herokuapp.com/");
+import Header from './components/Header';
+import Footer from './components/Footer';
+import AQILiveChart from './components/AQILiveChart';
 
+let webSocketObj = new WebSocket("ws://city-ws.herokuapp.com/");
 
 function App() {
   const [aqiData, setAQIData] = useState(() => initialState());
   const tempAQIData = useRef(initialState());
   const aqiTableColumns = ['City', 'Current aqi', 'Last updated' ];
-  
+  const showAQIChart = useRef(false);
+  const selectedCity = useRef("");
+
   useEffect(() => {
     webSocketObj.onopen = () => {
       console.log("Connection established with the Server");
@@ -16,7 +21,6 @@ function App() {
     webSocketObj.onmessage = (message) => {
       const parsedJSONResponse = JSON.parse(message.data);
       //processing json response
-      //tempAQIData.current = JSON.parse(JSON.stringify(aqiData));
       
       for (let currDataObj of parsedJSONResponse) {
         for (let prevDataObj of tempAQIData.current) {
@@ -44,26 +48,36 @@ function App() {
 
 
   return (
+    
     <div className="App">
-      <table>
-        
-          {
-            aqiTableColumns.map((columnName) => 
-             (<th>{columnName}</th>))
+      <Header />
+      <div className="AQITable">
+        <table>
           
+            {
+              aqiTableColumns.map((columnName) => 
+              (<th>{columnName}</th>))
+            
+            }
+          
+          {
+            aqiData.map((rowData) => 
+              (<tr>
+              <td><a href="#" onClick={() => { selectedCity.current = rowData["city"]; showAQIChart.current = true; }}>{rowData["city"]}</a></td>
+              {getAQIRowData(rowData["aqi"])}
+              <td>{rowData["last_update"]}</td>
+                  </tr>))
           }
+        </table>
+        <p style={{ color: 'gray' }}>* For real time monitoring chart, click on the particular city name</p>
         
-        {
-           aqiData.map((rowData) => 
-             (<tr>
-             <td>{rowData["city"]}</td>
-             {getAQIRowData(rowData["aqi"])}
-             <td>{rowData["last_update"]}</td>
-                </tr>))
-        }
-      </table>
+      </div>
+      {showAQIChart.current ? <AQILiveChart aqidata={aqiData.filter((dataObj) => dataObj["city"] === selectedCity.current)} /> : <div/>}
+      <Footer/>
     </div>
   );
+
+  
 }
 
 function initialState() {
@@ -116,7 +130,9 @@ function getAQIRowData(value) {
 
 
   return (
-    <td class={tdClass}>{value}</td>
+    <td class={tdClass}><b>{value}</b></td>
   );
 }
+
+
 export default App;

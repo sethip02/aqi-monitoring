@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  max-height: 100%;
 }
 
 .App-logo {
@@ -37,15 +38,24 @@
   }
 }
 
-table, td, th {
-  border: 1px solid black;
+
+
+ td {
+   color: white;
+  background-color: black;
+  border: 1px solid white;
+}
+
+th {
+  background-color:cornflowerblue;
+  border: 1px solid white;
 }
 
 td.good {
-  color: green;
+  color: rgb(2, 129, 2);
 }
 td.satisfactory {
-  color: lightgreen;
+  color: darkseagreen;
 }
 td.moderate {
   color: gold;
@@ -61,7 +71,7 @@ td.severe {
 }
 
 td.na{
-  color:black;
+  color:white;
 }
 
 table {
@@ -69,4 +79,6 @@ table {
   border-collapse: collapse;
   margin-left: auto;
   margin-right: auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
