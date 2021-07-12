@@ -12,7 +12,7 @@ This application is single page application which on first render ( http://<host
     
   External Libraries used:
   
-    Rechart - For Line chart
+    Recharts - For Line chart
     React Semantic UI Icons
   
   CI/CD for the application
