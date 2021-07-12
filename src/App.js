@@ -3,21 +3,28 @@ import { React, useEffect, useState, useRef } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import AQILiveChart from './components/AQILiveChart';
+import { Icon } from 'semantic-ui-react';
 
-let webSocketObj = new WebSocket("ws://city-ws.herokuapp.com/");
+let webSocketObj = new WebSocket("wss://city-ws.herokuapp.com/");
 
 function App() {
   const [aqiData, setAQIData] = useState(() => initialState());
   const tempAQIData = useRef(initialState());
-  const aqiTableColumns = ['City', 'Current aqi', 'Last updated' ];
+  const aqiTableColumns = ['City', 'Current aqi', 'Last updated' ,'Compare'];
   const showAQIChart = useRef(false);
-  const selectedCity = useRef("");
+  const selectedCity = useRef([]);
+  const [errorOccurred, setErrorOccurred] = useState(false);
 
   useEffect(() => {
     webSocketObj.onopen = () => {
       console.log("Connection established with the Server");
     };
-    
+
+    webSocketObj.onerror = (event) => {
+      console.log("Error occurred while connecting to Server");
+      setErrorOccurred(true);
+    }
+
     webSocketObj.onmessage = (message) => {
       const parsedJSONResponse = JSON.parse(message.data);
       //processing json response
@@ -46,12 +53,45 @@ function App() {
     
   }, []);
 
+  function processAQIDataForLiveChart(aqiData) {
+    console.log("Selected Cities: " + JSON.stringify(selectedCity.current));
+    var filteredData = aqiData.filter((dataObj) => selectedCity.current.includes(dataObj["city"]));
+    if (filteredData.length === 1)
+      return filteredData.map((obj1) => ({ "name": obj1["city"], "city1": obj1["aqi"] }))
+    else
+      return filteredData.reduce((obj1, obj2) => ({ "name": (obj1["city"] + (obj2 !== null) ? "/" + obj2["city"] : ""), "city1": obj1["aqi"], "city2": (obj2 !== null) ? obj2["aqi"] : 0.00 }))
+  }
+
+  function handleIconClick(e) {
+    console.log("e.target.enabled: " + e.target.enabled + " ; Icon id: " + e.target.id);
+    if (e.target.enabled) {
+      if (selectedCity.current.length === 2) {
+        
+      }
+      else {
+        e.target.enabled = false;
+        e.target.disabled = true;
+        showAQIChart.current = true;
+        selectedCity.current.push(e.target.id);
+      }
+      
+    }
+    else {
+      if (selectedCity.current.length === 1) {
+        showAQIChart.current = false;
+      }
+      e.target.enabled = true;
+      e.target.disabled = false;
+      selectedCity.current.pop(e.target.id);
+    }
+  }
 
   return (
     
     <div className="App">
       <Header />
-      <div className="AQITable">
+      {errorOccurred ? <div className="content"><h3>Something went wrong. Please try after sometime.</h3></div>:
+      <div className="content">
         <table>
           
             {
@@ -63,16 +103,17 @@ function App() {
           {
             aqiData.map((rowData) => 
               (<tr>
-              <td><a href="#" onClick={() => { selectedCity.current = rowData["city"]; showAQIChart.current = true; }}>{rowData["city"]}</a></td>
+              <td><a href="#" onClick={() => { selectedCity.current.push(rowData["city"]); showAQIChart.current = true; }}>{rowData["city"]}</a></td>
               {getAQIRowData(rowData["aqi"])}
               <td>{rowData["last_update"]}</td>
+              <td><Icon enabled id={rowData["city"]} name='plus' onClick={handleIconClick}/></td>
                   </tr>))
           }
         </table>
         <p style={{ color: 'gray' }}>* For real time monitoring chart, click on the particular city name</p>
-        
-      </div>
-      {showAQIChart.current ? <AQILiveChart aqidata={aqiData.filter((dataObj) => dataObj["city"] === selectedCity.current)} /> : <div/>}
+       
+      </div>}
+      {showAQIChart.current ? <AQILiveChart aqidata={processAQIDataForLiveChart(aqiData)} selectedCity={selectedCity.current}/> : <div/>}
       <Footer/>
     </div>
   );
@@ -133,6 +174,7 @@ function getAQIRowData(value) {
     <td class={tdClass}><b>{value}</b></td>
   );
 }
+
 
 
 export default App;

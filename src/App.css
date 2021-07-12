@@ -38,7 +38,11 @@
   }
 }
 
-
+div.content{
+  min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
 
  td {
    color: white;
@@ -46,6 +50,9 @@
   border: 1px solid white;
 }
 
+#compare-icon{
+  background-color: white;
+}
 th {
   background-color:cornflowerblue;
   border: 1px solid white;

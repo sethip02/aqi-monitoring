@@ -9,23 +9,37 @@ class AQILiveChart extends React.Component{
         super(props);
         this.state ={
           data: [],
-          selectedCity : ""
+          selectedCity : []
         }
     }
    
   static getDerivedStateFromProps(props, state) {
+    console.log(JSON.parse(JSON.stringify(props.aqidata)));
     var receivedData = JSON.parse(JSON.stringify(props.aqidata));
-    if ((state.selectedCity !== "" && (receivedData[0]['city'] !== state.selectedCity))) {
+    var cityNames = "";
+    console.log("state.selectedCity: " + JSON.stringify(state.selectedCity));
+    console.log("cityNames: " + cityNames);
+    if (state.selectedCity.length !== 0) {
+      if (state.selectedCity.length === 1) {
+        cityNames = state.selectedCity[0];
+      }
+      else {
+        var tempArr = state.selectedCity;
+        cityNames = tempArr[0] + "/" + tempArr[1];
+      }
+    }
+    if ((state.selectedCity !== [] && (receivedData[0]['name'] !== cityNames))) {
       
       return {
         data: receivedData,
-        selectedCity: receivedData[0]['city']
+        selectedCity: [receivedData[0]['name']]
       };
     }
     else {
       return {
         data: state.data.concat(receivedData),
-        selectedCity: receivedData[0]['city']
+        selectedCity: [receivedData[0]['name']]
+        
 
       };
     }
@@ -34,7 +48,7 @@ class AQILiveChart extends React.Component{
       console.log("Data received in AQILiveChart: " + JSON.stringify(this.state.data));
         return (
           <div style={{
-  paddingBottom: '56.25%', /* 16:9 */
+  paddingBottom: '56.25%',
   position: 'relative',
   height: 0
 }} >
@@ -58,11 +72,13 @@ class AQILiveChart extends React.Component{
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="city" />
-          <YAxis dataKey="aqi" />
+          <XAxis dataKey="name" />
+          <YAxis />
           <Tooltip />
           <Legend />
-          <Line type="monotone" dataKey="aqi" stroke="#8884d8" activeDot={{ r: 8 }} />
+          <Line type="monotone" dataKey="city1" stroke="#8884d8"/>
+          { this.state.selectedCity.length === 2 ? <Line type="monotone" dataKey="city2" stroke="#82ca9d" /> : null}
+          
         </LineChart>
       </ResponsiveContainer>
 </div>
