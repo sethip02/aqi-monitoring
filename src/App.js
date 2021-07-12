@@ -57,32 +57,32 @@ function App() {
     console.log("Selected Cities: " + JSON.stringify(selectedCity.current));
     var filteredData = aqiData.filter((dataObj) => selectedCity.current.includes(dataObj["city"]));
     if (filteredData.length === 1)
-      return filteredData.map((obj1) => ({ "name": obj1["city"], "city1": obj1["aqi"] }))
+      return (filteredData.map((obj1) => ({ "name": obj1["city"], "city1": obj1["aqi"] })))[0];
     else
-      return filteredData.reduce((obj1, obj2) => ({ "name": (obj1["city"] + (obj2 !== null) ? "/" + obj2["city"] : ""), "city1": obj1["aqi"], "city2": (obj2 !== null) ? obj2["aqi"] : 0.00 }))
+      return filteredData.reduce((obj1, obj2) => ({ "name": (((obj1!== null)? obj1["city"] +"/":"") + ((obj2 !== null) ? obj2["city"] : "")), "city1": (obj1 !== null) ? obj1["aqi"] : 0.00, "city2": (obj2 !== null) ? obj2["aqi"] : 0.00 }))
   }
 
   function handleIconClick(e) {
-    console.log("e.target.enabled: " + e.target.enabled + " ; Icon id: " + e.target.id);
-    if (e.target.enabled) {
-      if (selectedCity.current.length === 2) {
+    console.log("e.target.className: " + e.target.className + " ; Icon id: " + e.target.id);
+    if (e.target.className !== undefined) {
+      if (!(e.target.className.includes("disabled"))) {
+        if (selectedCity.current.length === 2) {
+          
+        }
+        else {
+          e.target.className = "plus icon disabled";
+          showAQIChart.current = true;
+          selectedCity.current.push(e.target.id);
+        }
         
       }
       else {
-        e.target.enabled = false;
-        e.target.disabled = true;
-        showAQIChart.current = true;
-        selectedCity.current.push(e.target.id);
+        if (selectedCity.current.length === 1) {
+          showAQIChart.current = false;
+        }
+        e.target.className = "plus icon enabled";
+        selectedCity.current.pop(e.target.id);
       }
-      
-    }
-    else {
-      if (selectedCity.current.length === 1) {
-        showAQIChart.current = false;
-      }
-      e.target.enabled = true;
-      e.target.disabled = false;
-      selectedCity.current.pop(e.target.id);
     }
   }
 
@@ -103,14 +103,14 @@ function App() {
           {
             aqiData.map((rowData) => 
               (<tr>
-              <td><a href="#" onClick={() => { selectedCity.current.push(rowData["city"]); showAQIChart.current = true; }}>{rowData["city"]}</a></td>
+              <td>{rowData["city"]}</td>
               {getAQIRowData(rowData["aqi"])}
               <td>{rowData["last_update"]}</td>
               <td><Icon enabled id={rowData["city"]} name='plus' onClick={handleIconClick}/></td>
                   </tr>))
           }
         </table>
-        <p style={{ color: 'gray' }}>* For real time monitoring chart, click on the particular city name</p>
+        <p style={{ color: 'gray' }}>* For real time monitoring chart and aqi comparison of 2 cities , click <b>+</b> sign against city name</p>
        
       </div>}
       {showAQIChart.current ? <AQILiveChart aqidata={processAQIDataForLiveChart(aqiData)} selectedCity={selectedCity.current}/> : <div/>}

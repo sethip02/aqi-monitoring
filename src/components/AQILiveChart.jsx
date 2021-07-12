@@ -18,7 +18,7 @@ class AQILiveChart extends React.Component{
     var receivedData = JSON.parse(JSON.stringify(props.aqidata));
     var cityNames = "";
     console.log("state.selectedCity: " + JSON.stringify(state.selectedCity));
-    console.log("cityNames: " + cityNames);
+    
     if (state.selectedCity.length !== 0) {
       if (state.selectedCity.length === 1) {
         cityNames = state.selectedCity[0];
@@ -28,17 +28,21 @@ class AQILiveChart extends React.Component{
         cityNames = tempArr[0] + "/" + tempArr[1];
       }
     }
-    if ((state.selectedCity !== [] && (receivedData[0]['name'] !== cityNames))) {
+    console.log("cityNames: " + cityNames);
+    var dataarr = state.data;
+    if (dataarr === [] || (receivedData['name'] !== cityNames)) {
       
       return {
-        data: receivedData,
-        selectedCity: [receivedData[0]['name']]
+        data: [receivedData],
+        selectedCity: props.selectedCity
       };
     }
     else {
+      
+      dataarr.push(receivedData);
       return {
-        data: state.data.concat(receivedData),
-        selectedCity: [receivedData[0]['name']]
+        data: dataarr,
+        selectedCity: props.selectedCity
         
 
       };
